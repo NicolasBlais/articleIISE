@@ -54,7 +54,31 @@ Sujet Amené
 \end{itemize}
 
 
-\section*{Model}
+\section*{Problem formulation}
+First of all, the problem of Biscuit Leclerc is to schedule an amount of task ($\mathbb{T}$) in a horizon of planification. Between each task, there is a transition time. This transition depends of the allergenic nature on the product. So, if a product with a lot of allergens is followed by a task with no or less allergen, the setup time is big because they need to clean all the assembly line to make a new product. On the other hand, to go to a product with no allergen to one with more of it, take less time because that it’s no use to clean it. Considering the fact that the setup time is an activity without added value, we need to minimize it to increase the productivity. The objective function is presented below (eq. 1) and consist to minimize the sum of all transition time of a task i toward the next task (N\textsubscript{i}). To find the correct time, we use the element constraint, showed in equation 2. To create a lower and upper bound to the objective function, we use the constraint 3. 
+\begin{flalign}
+\text{Minimize: }  & W \nonumber \\
+& W = \sum \limits_{i \in \mathbb{T}} T_{i, N_i} \\
+& \textsc{Element}(T_{i, N_i}, t_i, N_i), & \forall i \in \mathbb{T} \\
+& \min_{j \in \mathbb{T}}t_{i,j} \leq T_{i, N_i} \leq \max_{j \in \mathbb{T}}t_{i,j}, & \forall i \in \mathbb{T}
+\end{flalign}
+
+Also,to produce enough, we need to execute a task i during a certain amount of time (p\textsubscript{i}) before a due date named Latest Completion Time (LCT\textsubscript{i}). In addition, we cannot start a task before a certain date called Earliest Starting Time (EST) because of the perishability of the product. So, the starting time (S\textsubscript{i}) is bound by the EST and LCT minus the p\textsubscript{i} also called Latest Starting Times (LST\textsubscript{i})liked presented in eq. 4.
+\begin{flalign}
+& \est_i \leq S_i \leq \lct_i - p_i, & \forall i \in \mathbb{T} 
+\end{flalign}
+
+As well, to avoid that two tasks are executed at the same, we need to use the disjunctive constraint (eq. 6). This constraint takes as arguments two parameters. The first is the starting time and the second is the length of a task. The first variable is already defined with S\textsubscript{i}, but for the second we need to know the complete processing time: including the transition time (P\textsubscript{i}) whom is not known. This is why we use the equation 5 to define P\textsubscript{i}.
+\begin{flalign}
+& P_i = p_i + T_{i, N_i}, & \forall i \in \mathbb{T} \\
+& \textsc{Disjunctive}(S, P) 
+\end{flalign}
+
+
+
+
+
+
 \textbf{Parameters}
 %Table des ensembles
 \begin{table}[ht]
