@@ -22,7 +22,6 @@
 %\keywords{Keyword1, Keyword2, Keyword3}
 
 \begin{abstract}
-MonTest
 Example Abstract. Abstract must not include subheadings or citations. Example Abstract. Abstract must not include subheadings or citations. Example Abstract. Abstract must not include subheadings or citations. Example Abstract. Abstract must not include subheadings or citations. Example Abstract. Abstract must not include subheadings or citations. Example Abstract. Abstract must not include subheadings or citations. Example Abstract. Abstract must not include subheadings or citations. Example Abstract. Abstract must not include subheadings or citations.
 \end{abstract}
 \begin{document}
@@ -38,6 +37,7 @@ Example Abstract. Abstract must not include subheadings or citations. Example Ab
 \noindent Please note: Abbreviations should be introduced at the first mention in the main text – no abbreviations lists. Suggested structure of main text (not enforced) is provided below.
 
 \section*{Introduction}
+https://coop-ist.cirad.fr/content/download/4831/36281/version/1/file/Rediger-introduction-article-scientifique.pdf 
 Sujet Amené
 \begin{itemize}
     \item 
@@ -68,18 +68,46 @@ Also,to produce enough, we need to execute a task i during a certain amount of t
 & \est_i \leq S_i \leq \lct_i - p_i, & \forall i \in \mathbb{T} 
 \end{flalign}
 
-As well, to avoid that two tasks are executed at the same, we need to use the disjunctive constraint (eq. 6). This constraint takes as arguments two parameters. The first is the starting time and the second is the length of a task. The first variable is already defined with S\textsubscript{i}, but for the second we need to know the complete processing time: including the transition time (P\textsubscript{i}) whom is not known. This is why we use the equation 5 to define P\textsubscript{i}.
+As well, to avoid that two tasks are executed at the same, we need to use the disjunctive constraint (eq. 7). This constraint takes as arguments two parameters. The first is the starting time and the second is the length of a task. The first variable is already defined with S\textsubscript{i}, but for the second we need to know the complete processing time: including the transition time (P\textsubscript{i}) whom is not known. This is why we use the equation 5 to define P\textsubscript{i}. The constraint 6 define the domain of P\textsubscript{i} that is bounded by p\textsubscript{i} plus the minimum transition time and the maximum transition time.
 \begin{flalign}
 & P_i = p_i + T_{i, N_i}, & \forall i \in \mathbb{T} \\
+& \min_{j \in \T}t_{i,j} + p_i \leq P_i \leq \max_{j \in \T}t_{i,j} + p_i, & \forall i \in \T \\ 
 & \textsc{Disjunctive}(S, P) 
 \end{flalign}
 
+Furthermore, to improve the performance of the model, we use a constraint called weight circuit. Before using it, we need to add to our model two fictive tasks named sentinel-begin and sentinel-end. These tasks have a duration p\textsubscript{i} of 0 and transition times of 0 with all other tasks. The goal of that is to not interfere with the real task. The sentinel-begin must imperatively start at the beginning of the task and the sentinel-end must start after the last task is scheduled. After that, we use the constraint 8 so that the next of the sentinel-end become the sentinel-begin like shown at the top of the figure 1.
+
+Now, it is possible to use the weight-circuit (eq. 9). This constraint need as parameters all variables N\textsubscript{i}, t\textsubscript{i,j} and the objective function W. The goal of that, it's to rely the tasks between them so that each task is relayed to form a circuit. At the bottom of the figure 1, we can see an example of a circuit. The advantages are that each task will be scheduled one after the other and this constraint does a lot of treatment to filter the domain of the variable N\textsubscript{i}.
+\begin{flalign}
+& N_{sentinel End} = sentinel Begin \\
+& \textsc{W-Circuit}(N, t, W)
+\end{flalign}
+
+\begin{figure}[b!]
+	\centering
+  	\includegraphics[keepaspectratio,scale=0.4]{FigureCircuit}
+    \caption{Example of how the circuit constraint works}
+\end{figure}
+
+Also, the production lines are close during the weekend and some during the night. Indeed, there is a schedule given the starting time (dayBegin) and ending time (dayEnd) for all working day ($\mathbb{J}$). So, we add a variable representing the working day that a task is done (J\textsubscript{j}). The two equations bellow make sure that a task is done during a working day.
+
+\begin{flalign}
+& J_i \geq j \Rightarrow S_i \geq dayBegin_j, & \forall i \in \T, \forall j \in \mathbb{J} \\
+& J_i \leq j \Rightarrow S_i \leq dayEnd_j, & \forall i \in \T, \forall j \in \mathbb{J}
+\end{flalign}
+
+%Rendu à embarquer sur le modèle préemptif
 
 
 
 
 
-\textbf{Parameters}
+
+
+
+
+
+
 %Table des ensembles
 \begin{table}[ht]
 \centering
@@ -87,17 +115,15 @@ As well, to avoid that two tasks are executed at the same, we need to use the di
 \hline
 Symbol & Meaning \\
 \hline
-$\mathbb{T}$ & set of all the task \\
+$\mathbb{T}$ & set of all the task \\ %done
 \hline
-$\mathbb{J}$ & set of all the working day \\
+$\mathbb{J}$ & set of all the working day \\%done
 \hline
 $\mathbb{M}$ & set of all day who are Monday \\
 \hline
 $\mathbb{D}$ & set of all the task that must be done during a monday \\
 \hline
 $\mathbb{G}$ & set of all group of task with a limit of task that can be done during one day \\
-\hline
-$\mathbb{T}$\textsubscript{$\mathbb{G}$} & set of all the task member of a group $\mathbb{G}$\\
 \hline
 $\mathbb{N}$ & set of all the night shift \\
 \hline
@@ -111,19 +137,17 @@ $\mathbb{N}$ & set of all the night shift \\
 \hline
 Symbol & Meaning \\
 \hline
-t\textsubscript{i,j} & transition time for a task i toward a task j \\
+t\textsubscript{i,j} & transition time for a task i toward a task j \\%done
 \hline
-\est\textsubscript{i} & earliest starting time of the task i \\
+\est\textsubscript{i} & earliest starting time of the task i \\%done
 \hline
-\est\textsubscript{N\textsubscript{i}} & earliest starting time of the nest task N\textsubscript{i} \\
+\lct\textsubscript{i} & latest completion time of the task i \\%done
 \hline
-\lct\textsubscript{i} & latest completion time of the task i \\
+p\textsubscript{i} & processing times of the task i  \\%done
 \hline
-p\textsubscript{i} & processing times of the task i  \\
+dayBegin\textsubscript{j} & starting time of the day j \\%done
 \hline
-dayBegin\textsubscript{j} & starting time of the day j \\
-\hline
-dayEnd\textsubscript{j} & ending time of the day j \\
+dayEnd\textsubscript{j} & ending time of the day j \\%done
 \hline
 minDuration & minimum duration of task that have been separate \\
 \hline
@@ -152,25 +176,25 @@ maxSetup & maximum setup allowed during day \\
 \hline
 Symbol & Meaning \\
 \hline
-W & sum of all transition times \\
+W & sum of all transition times \\%done
 \hline
-N\textsubscript{i} & number of the next task for a task i  \\
+N\textsubscript{i} & number of the next task for a task i  \\%done
 \hline
-T\textsubscript{i, N\textsubscript{i}} & transition times for the task i with the next task N\textsubscript{i} \\
+T\textsubscript{i, N\textsubscript{i}} & transition times for the task i with the next task N\textsubscript{i} \\%done
 \hline
 A\textsubscript{i, j} & transition starting times for the transition of the task i toward the task j  \\ %Pas sûr de bien la comprendre
 \hline
 A\textsubscript{i, N\textsubscript{i}} & transition starting times for the transition of the task i toward the next task Next\textsubscript{i}  \\ %Pas sûr de bien la comprendre
 \hline
-P\textsubscript{i} & processing time with transition of the task i  \\
+P\textsubscript{i} & processing time with transition of the task i  \\%done
 \hline
-S\textsubscript{i} & starting time of the task i  \\
+S\textsubscript{i} & starting time of the task i  \\%done
 \hline
 S'\textsubscript{i} & starting time of earliest starting times that the task can be done of the task i  \\
 \hline
 S\textsubscript{N\textsubscript{i}} & starting time of the next task N\textsubscript{i}  \\
 \hline
-J\textsubscript{i} & starting day of the task i  \\
+J\textsubscript{i} & starting day of the task i  \\ %done
 \hline
 J'\textsubscript{i} & take the starting day of the task i if p\textsubscript{i} > 0 and -1 otherwise \\
 \hline
@@ -196,6 +220,8 @@ Pos\textsubscript{i}  & position of the task i \\
 \hline
 Pos\textsubscript{N\textsubscript{i}}  & position of the next task N\textsubscript{i} \\
 \hline
+\est\textsubscript{N\textsubscript{i}} & earliest starting time of the nest task N\textsubscript{i} \\
+\hline
 G\textsubscript{i,g,j} & 1 if a task i member of a family g is done in a day j and 0 otherwise\\
 \hline
 SKU\textsubscript{N\textsubscript{i}} & SKU of the next task {N\textsubscript{i}} \\
@@ -210,26 +236,26 @@ Tnm\textsubscript{i} & starting time of the upcoming monday for a task i \\
 \noindent \textbf{Constraints}
 \\- Constraint of the basic model.
 \begin{flalign}
-\text{Minimize: }  & W \nonumber \\
-& W = \sum \limits_{i \in \T} T_{i, N_i} \\
-& \textsc{Element}(T_{i, N_i}, t_i, N_i), & \forall i \in \T \\
-& \min_{j \in \T}t_{i,j} \leq T_{i, N_i} \leq \max_{j \in \T}t_{i,j}, & \forall i \in \T \\ %Est-ce que je devrais définir mint_i_j et maxt_i_j?
-& P_i = p_i + T_{i, N_i}, & \forall i \in \T \\
+\text{Minimize: }  & W \nonumber \\ %done
+& W = \sum \limits_{i \in \T} T_{i, N_i} \\ %done
+& \textsc{Element}(T_{i, N_i}, t_i, N_i), & \forall i \in \T \\ %done
+& \min_{j \in \T}t_{i,j} \leq T_{i, N_i} \leq \max_{j \in \T}t_{i,j}, & \forall i \in \T \\ %done
+& P_i = p_i + T_{i, N_i}, & \forall i \in \T \\ %done
 & \textsc{Element}(p_{N_i}, p_i, N_i), & \forall i \in \T \\
-& \min_{j \in \T}t_{i,j} + p_i \leq P_i \leq \max_{j \in \T}t_{i,j} + p_i, & \forall i \in \T \\ 
+& \min_{j \in \T}t_{i,j} + p_i \leq P_i \leq \max_{j \in \T}t_{i,j} + p_i, & \forall i \in \T \\ %done
 & A_{i,j} = S_j - t_{i,j}, & \forall i,j \in \T \\
 & \textsc{Element}(A_{i, N_i}, A_i, N_i), & \forall i \in \T \\
 & S_i + p_i \leq A_{i, N_i}, & \forall i \in \T \\
-& \est_i \leq S_i \leq \lst_i, & \forall i \in \T \\
+& \est_i \leq S_i \leq \lst_i, & \forall i \in \T \\ %done
 & N_i \in \{1, 2, ..., |\T|\} \setminus \{i\}, & \forall i \in \T \\
 & S_{N_i} \in \{0, 1, ..., h\}, & \forall i \in \T \\ %Pourquoi on l'écrit celle-là?
 & \textsc{Element}(S_{N_i}, S_i, N_i), & \forall i \in \T \\
-& N_e = s \\ %Est-ce la contrainte de la sentinelle begin = sentinelle end?
+& N_e = s \\ %done
 & \textsc{Element}(i, N_i, Pr_i), & \forall i \in \T \\
-& J_i \geq j \Rightarrow S_i \geq dayBegin_j, & \forall i \in \T, \forall j \in day \\
-& J_i \leq j \Rightarrow S_i \leq dayEnd_j, & \forall i \in \T, \forall j \in day \\
-& \textsc{Disjunctive}(S, P) \\
-& \textsc{W-Circuit}(N, t, W)
+& J_i \geq j \Rightarrow S_i \geq dayBegin_j, & \forall i \in \T, \forall j \in \mathbb{J} \\ %done
+& J_i \leq j \Rightarrow S_i \leq dayEnd_j, & \forall i \in \T, \forall j \in \mathbb{J} \\ %done
+& \textsc{Disjunctive}(S, P) \\%done
+& \textsc{W-Circuit}(N, t, W) %done
 \end{flalign}
 
 %Contraintes specifique pour le modèle préemptif
@@ -245,7 +271,7 @@ Tnm\textsubscript{i} & starting time of the upcoming monday for a task i \\
 & \textsc{IfThenElse}(J_i = J_{N_i}, S_{i} + P_{i} = S_{N_i}, S_{N_i} = Z_i), & \forall i \in \T \\
 & \textsc{Element}(Z_i, dayBegin, J_i + 1), & \forall i \in \T \\
 & \tilde{p}_{i_1} = p_i \Rightarrow J_{i_1} = J_{i_2}, & \forall i \in \T \\
-& S_{i_1} +p_{i_1} > dayEnd_j \Rightarrow S_{i_1} +p_{i_1} \geq dayEnd_j + minDuration
+& S_{i_1} +p_{i_1} > dayEnd_j \Rightarrow S_{i_1} +p_{i_1} \geq dayEnd_j + minDuration, & \forall i \in \T
 \end{flalign}
 
 %Contraintes specifique pour le branchement sur les nexts
@@ -265,7 +291,7 @@ Tnm\textsubscript{i} & starting time of the upcoming monday for a task i \\
 \noindent \\- Constraint specific to fix the task that must be done during a monday
 \begin{flalign}
 & J_i \notin monday \Rightarrow Pr_i \in \mathbb{M}, & \forall i \in \T \\
-& E_i \geq dayBegin_{m-1} \land E_i < dayBegin{m} \Rightarrow Tnm_i = dayBegin{m}, & \forall i \in \T, & \forall m \in \mathbb{M} \char`\\{1} \\
+& E_i \geq dayBegin_{m-1} \land E_i < dayBegin{m} \Rightarrow Tnm_i = dayBegin{m}, & \forall i \in \T, \forall m \in \mathbb{M} \char`\\{1} \\
 & S_i \leq S_j \Rightarrow S_j \geq Tnm_i, & \forall i \in \mathbb{D}
 \end{flalign}
 
@@ -284,7 +310,7 @@ Tnm\textsubscript{i} & starting time of the upcoming monday for a task i \\
 \noindent \\- Constraint to have a maximum of task member of a family during a day
 \begin{flalign}
 & J_i = j \Rightarrow G_{i,g,j} = 1, & \forall i \in \T_\mathbb{G}, \forall g \in \mathbb{G}, \forall j \in \mathbb{J}\\
-& \sum \limits_{i \in \T_\mathbb{G}} G_{i,g,j} \leq familyLimit_g, & \forall g \in \mathbb{G}, \forall j \in\mathbb{J}
+& \sum \limits_{i \in \mathbb{G}} G_{i,g,j} \leq familyLimit_g, & \forall g \in \mathbb{G}, \forall j \in\mathbb{J}
 \end{flalign}
 
 %Contraintes aucun changement de SKU durant la nuit
@@ -297,7 +323,7 @@ Tnm\textsubscript{i} & starting time of the upcoming monday for a task i \\
 \noindent \\- Constraint to limit the setup time during a day.
 \begin{flalign}
 & T_{i,j} > (maxTaskDay - 1)*maxSetup \Rightarrow J_i \neq J_j, & \forall i,j \in \T \\
-& T_{i,j} > maxSetup \land J_i = J_j \Rightarrow N_i \neq N_j, & \forall i,j \in \T \\
+& T_{i,j} > maxSetup \land J_i = J_j \Rightarrow N_i \neq N_j, & \forall i,j \in \T
 \end{flalign}
 
 % & \textsc{Element}(Pos_{N_i}, Pos_i, N_i), & \forall i \in \T \\
