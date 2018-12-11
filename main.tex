@@ -87,16 +87,55 @@ Now, it is possible to use the weight-circuit (eq. 9). This constraint need as p
 	\centering
   	\includegraphics[keepaspectratio,scale=0.4]{FigureCircuit}
     \caption{Example of how the circuit constraint works}
-\end{figure}
+\end{figure} %Ajouter une légende qui explique la figure
 
 Also, the production lines are close during the weekend and some during the night. Indeed, there is a schedule given the starting time (dayBegin) and ending time (dayEnd) for all working day ($\mathbb{J}$). So, we add a variable representing the working day that a task is done (J\textsubscript{j}). The two equations bellow make sure that a task is done during a working day.
 
 \begin{flalign}
-& J_i \geq j \Rightarrow S_i \geq dayBegin_j, & \forall i \in \T, \forall j \in \mathbb{J} \\
-& J_i \leq j \Rightarrow S_i \leq dayEnd_j, & \forall i \in \T, \forall j \in \mathbb{J}
+& J_i \geq j \Rightarrow S_i \geq dayBegin_j, & \forall i \in \mathbb{T}, \forall j \in \mathbb{J} \\
+& J_i \leq j \Rightarrow S_i \leq dayEnd_j, & \forall i \in \mathbb{T}, \forall j \in \mathbb{J}
 \end{flalign}
 
-%Rendu à embarquer sur le modèle préemptif
+%Créer une sous-section?
+
+What differentiates the case of Biscuits Leclerc with other scheduling problem is that a task can be done in two parts separate in time. For example, a task can start a Monday, be stopped during a night and be restarted the Friday and be accomplished. Furthermore, a task cannot be separated in more that two parts. To modeling it, for each task ($\mathbb{T}$), we create two tasks in the model i\textsubscript{1} and i\textsubscript{2} representing respectively the first and the second part of the task i. So, to make the good quantity of a product, we use the equation 12. Also, the second part i\textsubscript{2} must imperatively be done after the first part i\textsubscript{1} like shown with the constraint 13. The constraint 14 is added to help the filtering. 
+
+\begin{flalign}
+&\tilde{p}_{i_1} + \tilde{p}_{i_1} = p_i, & \forall i \in \mathbb{T} \\
+&S_{i_1} + \tilde{p}_{i_1} \leq S_{i_2}, & \forall i \in \mathbb{T} \\
+&N_{i_2} \neq i_1, & \forall i \in \mathbb{T} 
+\end{flalign}
+
+To manage the case that the first part does all the product for a task i, we create all the constraints below. To do these constraints, we assume that the transition time between task whom have the same SKU is 0. So, if the first part entirely done the command associated with a task i, the second part have a processing time of 0 and must be done directly after the first part. Also, to assure that this task is on the same day, the constraint 16 is added.  
+
+\begin{flalign}
+& \tilde{p}_{i_1} = p_i \Rightarrow N_{i_1} = i_2, & \forall i \in \mathbb{T} \\
+& \tilde{p}_{i_1} = p_i \Rightarrow J_{i_1} = J_{i_2}, & \forall i \in \mathbb{T}
+\end{flalign}
+
+Moreover, to improve the performance of the model and to avoid the solver to branch on the variable $\tilde{p}$\textsubscript{i\textsubscript{1}} and $\tilde{p}$\textsubscript{i\textsubscript{2}}, we allow only the last task in a working day to be cut. So, if the first task is not completely done, it must be finished at the end of the day (dayEnd) like shown in constraint 17. Also, we create a variable F\textsubscript{i} whom represents the end of the day of the task in progress (eq. 18). After that, we force $\tilde{p}$\textsubscript{i\textsubscript{1}} to take the good value with the constraint 19. In addition to, a task whom has been cut need to last a minimum duration (minDuration). For example, a task cannot be separate few minutes before be finished and do the   remaining time later because the setup and adjustment not worth it. The last constraint (eq. 20) show how we do to model it.
+
+\begin{flalign}
+& \tilde{p}_{i_1} < p_i \Rightarrow S_{i_1} + \tilde{p}_{i_1} \in dayEnd, & \forall i \in \mathbb{T} \\
+& \textsc{Element}(F_i, dayEnd, J_i), & \forall i \in \mathbb{T} \\
+& \tilde{p}_{i_1} = min(p_i, F_i - S_i), & \forall i \in \mathbb{T} \\
+& S_{i_1} +p_{i_1} > dayEnd_j \Rightarrow S_{i_1} +p_{i_1} \geq dayEnd_j + minDuration, & \forall i \in \mathbb{T}
+\end{flalign}
+
+Another thing specific to the line is that there is a maximum of task that can be done during a day (maxTaskDay). Also, we don't consider the task with a processing time of zero in the count of the task. We add a new variable (J'\textsubscript{i})that take value of the working day if the processing time is greater of 0 and take the value of -1 otherwise. After that, we add a constraint called global cardinality whom count the occurrence of each value for J'\textsubscript{i} and avoid that it exceed the maximum number of tasks allowed. 
+
+
+
+\begin{flalign}
+& \textsc{IfThenElse} (p_i > 0 , J'_i = J_i , J'_i = -1), & \forall i \in \T \\
+& \textsc{GlobalCardinality}(J'_i, maxTaskDay)
+\end{flalign}
+
+\begin{flalign}
+& T_{i,j} > (maxTaskDay - 1)*maxSetup \Rightarrow J_i \neq J_j, & \forall i,j \in \T \\
+& T_{i,j} > maxSetup \land J_i = J_j \Rightarrow N_i \neq N_j, & \forall i,j \in \T
+\end{flalign}
+
 
 
 
@@ -255,7 +294,11 @@ Tnm\textsubscript{i} & starting time of the upcoming monday for a task i \\
 & J_i \geq j \Rightarrow S_i \geq dayBegin_j, & \forall i \in \T, \forall j \in \mathbb{J} \\ %done
 & J_i \leq j \Rightarrow S_i \leq dayEnd_j, & \forall i \in \T, \forall j \in \mathbb{J} \\ %done
 & \textsc{Disjunctive}(S, P) \\%done
-& \textsc{W-Circuit}(N, t, W) %done
+& \textsc{W-Circuit}(N, t, W) \\%done
+& Pos_i \in \{1,2, ... , maxTaskDay\}, & \forall i \in \T \\
+& J_{N_i} = J_i \land p_{N_i} \neq 0 \Rightarrow Pos_{N_i} = Pos_i + 1, & \forall i \in \T \\
+& J_{N_i} = J_i \land p_{N_i} = 0 \Rightarrow Pos_{N_i} = Pos_i, & \forall i \in \T \\
+& J_{N_i} \neq J_i \Rightarrow Pos_{N_i} = 1, & \forall i \in \T
 \end{flalign}
 
 %Contraintes specifique pour le modèle préemptif
