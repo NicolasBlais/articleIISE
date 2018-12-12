@@ -55,7 +55,7 @@ Sujet Amené
 
 
 \section*{Problem formulation}
-First of all, the problem of Biscuit Leclerc is to schedule an amount of task ($\mathbb{T}$) in a horizon of planification. Between each task, there is a transition time. This transition depends of the allergenic nature on the product. So, if a product with a lot of allergens is followed by a task with no or less allergen, the setup time is big because they need to clean all the assembly line to make a new product. On the other hand, to go to a product with no allergen to one with more of it, take less time because that it’s no use to clean it. Considering the fact that the setup time is an activity without added value, we need to minimize it to increase the productivity. The objective function is presented below (eq. 1) and consist to minimize the sum of all transition time of a task i toward the next task (N\textsubscript{i}). To find the correct time, we use the element constraint, showed in equation 2. To create a lower and upper bound to the objective function, we use the constraint 3. 
+First of all, the problem of Biscuit Leclerc is to schedule an amount of task ($\mathbb{T}$) in a horizon of planification. Between each task, there is a transition time. This transition depends on the allergenic nature on the product. So, if a product with a lot of allergens is followed by a task with no or less allergen, the setup time is big because they need to clean all the assembly line to make a new product. On the other hand, to go to a product with no allergen to one with more of it, take less time because that it’s no use to clean it. Considering the fact that the setup time is an activity without added value, we need to minimize it to increase the productivity. The objective function is presented below (eq. 1) and consist to minimize the sum of all transition time of a task i toward the next task (N\textsubscript{i}). To find the correct time, we use the element constraint, showed in equation 2. To create a lower and upper bound to the objective function, we use the constraint 3. 
 \begin{flalign}
 \text{Minimize: }  & W \nonumber \\
 & W = \sum \limits_{i \in \mathbb{T}} T_{i, N_i} \\
@@ -63,7 +63,7 @@ First of all, the problem of Biscuit Leclerc is to schedule an amount of task ($
 & \min_{j \in \mathbb{T}}t_{i,j} \leq T_{i, N_i} \leq \max_{j \in \mathbb{T}}t_{i,j}, & \forall i \in \mathbb{T}
 \end{flalign}
 
-Also,to produce enough, we need to execute a task i during a certain amount of time (p\textsubscript{i}) before a due date named Latest Completion Time (LCT\textsubscript{i}). In addition, we cannot start a task before a certain date called Earliest Starting Time (EST) because of the perishability of the product. So, the starting time (S\textsubscript{i}) is bound by the EST and LCT minus the p\textsubscript{i} also called Latest Starting Times (LST\textsubscript{i})liked presented in eq. 4.
+Also,to produce enough, we need to execute a task i during a certain amount of time (p\textsubscript{i}) before a due date named Latest Completion Time (LCT\textsubscript{i}). In addition, we cannot start a task before a certain date called Earliest Starting Time (EST) because of the perishability of the product. So, the starting time (S\textsubscript{i}) is bound by the EST and LCT minus the p\textsubscript{i} also called Latest Starting Times (LST\textsubscript{i}) like presented in eq. 4.
 \begin{flalign}
 & \est_i \leq S_i \leq \lct_i - p_i, & \forall i \in \mathbb{T} 
 \end{flalign}
@@ -75,7 +75,7 @@ As well, to avoid that two tasks are executed at the same, we need to use the di
 & \textsc{Disjunctive}(S, P) 
 \end{flalign}
 
-Furthermore, to improve the performance of the model, we use a constraint called weight circuit. Before using it, we need to add to our model two fictive tasks named sentinel-begin and sentinel-end. These tasks have a duration p\textsubscript{i} of 0 and transition times of 0 with all other tasks. The goal of that is to not interfere with the real task. The sentinel-begin must imperatively start at the beginning of the task and the sentinel-end must start after the last task is scheduled. After that, we use the constraint 8 so that the next of the sentinel-end become the sentinel-begin like shown at the top of the figure 1.
+Furthermore, to improve the performance of the model, we use a constraint called weight circuit. Before using it, we need to add to our model two fictive tasks named sentinel-begin and sentinel-end. These tasks have a duration p\textsubscript{i} of 0 and transition times of 0 with all other tasks. The goal of that is to not interfere with the real task. The sentinel begin must imperatively start at the beginning of the task and the sentinel end must start after the last task is scheduled. After that, we use the constraint 8 so that the next of the sentinel end become the sentinel begin like shown at the top of the figure 1.
 
 Now, it is possible to use the weight-circuit (eq. 9). This constraint need as parameters all variables N\textsubscript{i}, t\textsubscript{i,j} and the objective function W. The goal of that, it's to rely the tasks between them so that each task is relayed to form a circuit. At the bottom of the figure 1, we can see an example of a circuit. The advantages are that each task will be scheduled one after the other and this constraint does a lot of treatment to filter the domain of the variable N\textsubscript{i}.
 \begin{flalign}
@@ -124,17 +124,46 @@ Moreover, to improve the performance of the model and to avoid the solver to bra
 
 Another thing specific to the line is that there is a maximum of task that can be done during a day (maxTaskDay). Also, we don't consider the task with a processing time of zero in the count of the task. We add a new variable (J'\textsubscript{i})that take value of the working day if the processing time is greater of 0 and take the value of -1 otherwise. After that, we add a constraint called global cardinality whom count the occurrence of each value for J'\textsubscript{i} and avoid that it exceed the maximum number of tasks allowed. 
 
-
-
 \begin{flalign}
-& \textsc{IfThenElse} (p_i > 0 , J'_i = J_i , J'_i = -1), & \forall i \in \T \\
+& \textsc{IfThenElse} (p_i > 0 , J'_i = J_i , J'_i = -1), & \forall i \in \mathbb{T} \\
 & \textsc{GlobalCardinality}(J'_i, maxTaskDay)
 \end{flalign}
 
+Also, Biscuits Leclerc does not permit big setup during a working day because when the line is stopped for a setup, the workers do nothing. So, there is a maximum setup time (maxSetup) permit. The constraint 23 assures that if a transition time is too big, they cannot be done next to the other and during the same day. We assume that all transition times between tasks follow the triangle inequality. This inequality consist that the minimum setup between two tasks is always greater or equal to the direct transition. As shown in figure 2, to go of task A to task B directly take less that go to task A B to and C to B. Then, if the setup time is really big between two tasks, it is possible to conclude that they cannot be done during the same day. We can use this pattern to avoid that the solver tries to put this type of task during the same day as shown in the constraint 24.
+
+\begin{figure}[b!]
+	\centering
+  	\includegraphics[keepaspectratio,scale=0.4]{In_galiteTriangle}
+    \caption{Example of triangle inequality}
+\end{figure}
+
 \begin{flalign}
-& T_{i,j} > (maxTaskDay - 1)*maxSetup \Rightarrow J_i \neq J_j, & \forall i,j \in \T \\
-& T_{i,j} > maxSetup \land J_i = J_j \Rightarrow N_i \neq N_j, & \forall i,j \in \T
+& T_{i,j} > maxSetup \land J_i = J_j \Rightarrow N_i \neq N_j, & \forall i,j \in \mathbb{T} \\
+& T_{i,j} > (maxTaskDay - 1)*maxSetup \land T_{j,i} > (maxTaskDay - 1)*maxSetup\Rightarrow J_i \neq J_j, & \forall i,j \in \mathbb{T} 
 \end{flalign}
+
+Moreover, some task must be done during a Monday or directly after a task of the same type. 
+This is explained by the transition times toward this type of task ($\mathbb{M}$) are too long. But, the transition time of the task $\mathbb{M}$ toward other task are not too long. So, there are two possibilities : the task $\mathbb{M}$ start the Monday or the task before it is also a task of type $\mathbb{M}$. In order to ensure this, we create a variable Pr\textsubscript{i} representing the task before with the constraint 25. After that, we use the constraint 26 to assure that a task $\mathbb{M}$ is done a Monday or after a task of this set. 
+
+\begin{flalign}
+& \textsc{Element}(i, N_i, Pr_i), & \forall i \in \mathbb{T} \\
+& J_i \notin monday \Rightarrow Pr_i \in \mathbb{M}, & \forall i \in \mathbb{T} 
+\end{flalign}
+
+Some lines of production works on all day and night shift. That means that no night with no workers to make the long setup and the workers of night shift are not able to start a product with a new SKU because it needs specific skills. So, with this king of lines, we two choices : we continue with the same product for the line or we take this time to make the setup. For that, we create a variable representing the ending time of a task without transition time (e\textsubscript{i}) and another with (E\textsubscript{i}). Therefore, with the constraint 29, if a task finish during a night shift $\mathbb{N}$, the next task start after the night shift or the next SKU (SKU\textsubscript{N\textsubscript{i}}) is the same.
+
+\begin{flalign}
+& S_i + p_i = e_i, & \forall i \in \mathbb{T} \\
+& S_i + P_i = E_i, & \forall i \in \mathbb{T} \\
+& E_i \geq nightShiftBegin \land E_i < nightShiftEnd \Rightarrow S_{N_i} \geq nightShiftEnd \lor SKU_i = SKU_{N_i}& \forall i \in \T, \forall n \in \mathbb{N}
+\end{flalign}
+
+
+% Thence
+% Therefore
+% then
+
+
 
 
 
@@ -158,13 +187,13 @@ $\mathbb{T}$ & set of all the task \\ %done
 \hline
 $\mathbb{J}$ & set of all the working day \\%done
 \hline
-$\mathbb{M}$ & set of all day who are Monday \\
+$\mathbb{M}$ & set of all day who are Monday \\ 
 \hline
-$\mathbb{D}$ & set of all the task that must be done during a monday \\
+$\mathbb{D}$ & set of all the task that must be done during a monday \\ %done
 \hline
 $\mathbb{G}$ & set of all group of task with a limit of task that can be done during one day \\
 \hline
-$\mathbb{N}$ & set of all the night shift \\
+$\mathbb{N}$ & set of all the night shift \\ %done
 \hline
 \end{tabular}
 \caption{\label{tab:example}List of all sets.}
@@ -188,19 +217,19 @@ dayBegin\textsubscript{j} & starting time of the day j \\%done
 \hline
 dayEnd\textsubscript{j} & ending time of the day j \\%done
 \hline
-minDuration & minimum duration of task that have been separate \\
+minDuration & minimum duration of task that have been separate \\ %done
 \hline
-monday & list of day who are Monday \\
+monday & list of day who are Monday \\ %done
 \hline
-maxTaskDay & maximum of task that can be done during a day \\
+maxTaskDay & maximum of task that can be done during a day \\ %done
 \hline
-SKU\textsubscript{i} & SKU of the task i \\
+SKU\textsubscript{i} & SKU of the task i \\ %done
 \hline
-nightShiftBegin\textsubscript{n} & starting time of the night shift for a night n \\
+nightShiftBegin\textsubscript{n} & starting time of the night shift for a night n \\ %done
 \hline
-nightShiftEnd\textsubscript{n} & ending time of the night shift for a night n \\
+nightShiftEnd\textsubscript{n} & ending time of the night shift for a night n \\ %done
 \hline
-maxSetup & maximum setup allowed during day \\
+maxSetup & maximum setup allowed during day \\ %done
 \hline
 \end{tabular}
 \caption{\label{tab:example}List of all parameters.}
@@ -231,29 +260,29 @@ S\textsubscript{i} & starting time of the task i  \\%done
 \hline
 S'\textsubscript{i} & starting time of earliest starting times that the task can be done of the task i  \\
 \hline
-S\textsubscript{N\textsubscript{i}} & starting time of the next task N\textsubscript{i}  \\
+S\textsubscript{N\textsubscript{i}} & starting time of the next task N\textsubscript{i}  \\ 
 \hline
 J\textsubscript{i} & starting day of the task i  \\ %done
 \hline
-J'\textsubscript{i} & take the starting day of the task i if p\textsubscript{i} > 0 and -1 otherwise \\
+J'\textsubscript{i} & take the starting day of the task i if p\textsubscript{i} > 0 and -1 otherwise \\ %done
 \hline
-$\tilde{p}$\textsubscript{i\textsubscript{1}}  & processing time of the first part of the task i \\
+$\tilde{p}$\textsubscript{i\textsubscript{1}}  & processing time of the first part of the task i \\ %done
 \hline
-$\tilde{p}$\textsubscript{i\textsubscript{2}}  & processing time of the second part of the task i \\
+$\tilde{p}$\textsubscript{i\textsubscript{2}}  & processing time of the second part of the task i \\ %done
 \hline
-F\textsubscript{i}  & ending time of the day of the task i \\
+F\textsubscript{i}  & ending time of the day of the task i \\ %done
 \hline
-J\textsubscript{N\textsubscript{i}}  & day of the next task N\textsubscript{i} \\
+J\textsubscript{N\textsubscript{i}}  & day of the next task N\textsubscript{i} \\ 
 \hline
-Z\textsubscript{i}  & starting time of the day after for the task i \\
+Z\textsubscript{i}  & starting time of the day after for the task i \\ 
 \hline
 p\textsubscript{N\textsubscript{i}}  & processing time for the next task i \\
 \hline
-e\textsubscript{i}  & ending time without transition time of the task i \\
+e\textsubscript{i}  & ending time without transition time of the task i \\ %done
 \hline
-E\textsubscript{i}  & ending time with transition time of the task i \\
+E\textsubscript{i}  & ending time with transition time of the task i \\ %done
 \hline
-Pr\textsubscript{i}  & number of the previous task for a task i \\
+Pr\textsubscript{i}  & number of the previous task for a task i \\ %done
 \hline
 Pos\textsubscript{i}  & position of the task i \\
 \hline
@@ -263,7 +292,7 @@ Pos\textsubscript{N\textsubscript{i}}  & position of the next task N\textsubscri
 \hline
 G\textsubscript{i,g,j} & 1 if a task i member of a family g is done in a day j and 0 otherwise\\
 \hline
-SKU\textsubscript{N\textsubscript{i}} & SKU of the next task {N\textsubscript{i}} \\
+SKU\textsubscript{N\textsubscript{i}} & SKU of the next task {N\textsubscript{i}} \\ %done
 \hline
 Tnm\textsubscript{i} & starting time of the upcoming monday for a task i \\
 \hline
@@ -290,7 +319,7 @@ Tnm\textsubscript{i} & starting time of the upcoming monday for a task i \\
 & S_{N_i} \in \{0, 1, ..., h\}, & \forall i \in \T \\ %Pourquoi on l'écrit celle-là?
 & \textsc{Element}(S_{N_i}, S_i, N_i), & \forall i \in \T \\
 & N_e = s \\ %done
-& \textsc{Element}(i, N_i, Pr_i), & \forall i \in \T \\
+& \textsc{Element}(i, N_i, Pr_i), & \forall i \in \T \\ %done
 & J_i \geq j \Rightarrow S_i \geq dayBegin_j, & \forall i \in \T, \forall j \in \mathbb{J} \\ %done
 & J_i \leq j \Rightarrow S_i \leq dayEnd_j, & \forall i \in \T, \forall j \in \mathbb{J} \\ %done
 & \textsc{Disjunctive}(S, P) \\%done
@@ -304,17 +333,17 @@ Tnm\textsubscript{i} & starting time of the upcoming monday for a task i \\
 %Contraintes specifique pour le modèle préemptif
 \noindent \\- Constraint specific for the preemptif model
 \begin{flalign}
-&\tilde{p}_{i_1} + \tilde{p}_{i_1} = p_i, & \forall i \in \T \\
-&S_{i_1} + \tilde{p}_{i_1} \leq S_{i_2}, & \forall i \in \T \\
-&N_{i_2} \neq i_1, & \forall i \in \T \\
-& \tilde{p}_{i_1} = p_i \Rightarrow N_{i_1} = i_2, & \forall i \in \T \\
-& \tilde{P}_{i_1} < p_i \Rightarrow S_{i_1} + \tilde{p}_{i_1} \in dayEnd, & \forall i \in \T \\
-& \tilde{p}_{i_1} = min(p_i, F_i - S_i), & \forall i \in \T \\
-& \textsc{Element}(F_i, dayEnd, J_i), & \forall i \in \T \\
-& \textsc{IfThenElse}(J_i = J_{N_i}, S_{i} + P_{i} = S_{N_i}, S_{N_i} = Z_i), & \forall i \in \T \\
-& \textsc{Element}(Z_i, dayBegin, J_i + 1), & \forall i \in \T \\
-& \tilde{p}_{i_1} = p_i \Rightarrow J_{i_1} = J_{i_2}, & \forall i \in \T \\
-& S_{i_1} +p_{i_1} > dayEnd_j \Rightarrow S_{i_1} +p_{i_1} \geq dayEnd_j + minDuration, & \forall i \in \T
+&\tilde{p}_{i_1} + \tilde{p}_{i_1} = p_i, & \forall i \in \T \\ %done
+&S_{i_1} + \tilde{p}_{i_1} \leq S_{i_2}, & \forall i \in \T \\ %done
+&N_{i_2} \neq i_1, & \forall i \in \T \\ %done
+& \tilde{p}_{i_1} = p_i \Rightarrow N_{i_1} = i_2, & \forall i \in \T \\ %done
+& \tilde{P}_{i_1} < p_i \Rightarrow S_{i_1} + \tilde{p}_{i_1} \in dayEnd, & \forall i \in \T \\ %done
+& \tilde{p}_{i_1} = min(p_i, F_i - S_i), & \forall i \in \T \\ %done
+& \textsc{Element}(F_i, dayEnd, J_i), & \forall i \in \T \\ %done
+& \textsc{IfThenElse}(J_i = J_{N_i}, S_{i} + P_{i} = S_{N_i}, S_{N_i} = Z_i), & \forall i \in \T \\ %done
+& \textsc{Element}(Z_i, dayBegin, J_i + 1), & \forall i \in \T \\ %done
+& \tilde{p}_{i_1} = p_i \Rightarrow J_{i_1} = J_{i_2}, & \forall i \in \T \\ %done
+& S_{i_1} +p_{i_1} > dayEnd_j \Rightarrow S_{i_1} +p_{i_1} \geq dayEnd_j + minDuration, & \forall i \in \T %done
 \end{flalign}
 
 %Contraintes specifique pour le branchement sur les nexts
@@ -333,7 +362,7 @@ Tnm\textsubscript{i} & starting time of the upcoming monday for a task i \\
 %Contraintes pour les tâches devant être faites le lundi
 \noindent \\- Constraint specific to fix the task that must be done during a monday
 \begin{flalign}
-& J_i \notin monday \Rightarrow Pr_i \in \mathbb{M}, & \forall i \in \T \\
+& J_i \notin monday \Rightarrow Pr_i \in \mathbb{M}, & \forall i \in \T \\ %done
 & E_i \geq dayBegin_{m-1} \land E_i < dayBegin{m} \Rightarrow Tnm_i = dayBegin{m}, & \forall i \in \T, \forall m \in \mathbb{M} \char`\\{1} \\
 & S_i \leq S_j \Rightarrow S_j \geq Tnm_i, & \forall i \in \mathbb{D}
 \end{flalign}
@@ -341,8 +370,8 @@ Tnm\textsubscript{i} & starting time of the upcoming monday for a task i \\
 %Contraintes pour le maximum de tâches devant être fait dans une journée
 \noindent \\- Constraint specific to have a maximum of task during a day
 \begin{flalign}
-& \textsc{Element}(Pos_{N_i}, Pos_i, N_i), & \forall i \in \T \\
-& \textsc{if}\:\:\:\:\: p_i > 0 \:\:\:\:\:\textsc{then}\:\:\:\:\: J'_i = J_i \:\:\:\:\:\textsc{else}\:\:\:\:\: J'_i = -1, & \forall i \in \T \\
+& \textsc{Element}(Pos_{N_i}, Pos_i, N_i), & \forall i \in \T \\ %done
+& \textsc{if}\:\:\:\:\: p_i > 0 \:\:\:\:\:\textsc{then}\:\:\:\:\: J'_i = J_i \:\:\:\:\:\textsc{else}\:\:\:\:\: J'_i = -1, & \forall i \in \T \\ %done
 & Pos_i \in \{1,2, ... , maxTaskDay\}, & \forall i \in \T \\
 & J_{N_i} = J_i \land p_{N_i} \neq 0 \Rightarrow Pos_{N_i} = Pos_i + 1, & \forall i \in \T \\
 & J_{N_i} = J_i \land p_{N_i} = 0 \Rightarrow Pos_{N_i} = Pos_i, & \forall i \in \T \\
@@ -359,14 +388,14 @@ Tnm\textsubscript{i} & starting time of the upcoming monday for a task i \\
 %Contraintes aucun changement de SKU durant la nuit
 \noindent \\- Constraint to prohibit changing SKU during night
 \begin{flalign}
-& E_i \geq nightShiftBegin \land E_i < nightShiftEnd \Rightarrow S_{N_i} \geq nightShiftEnd \lor SKU_i = SKU_{N_i}& \forall i \in \T, \forall n \in \mathbb{N}
+& E_i \geq nightShiftBegin \land E_i < nightShiftEnd \Rightarrow S_{N_i} \geq nightShiftEnd \lor SKU_i = SKU_{N_i}& \forall i \in \T, \forall n \in \mathbb{N} %done
 \end{flalign}
 
 %Contraintes d'un maximum de setup
-\noindent \\- Constraint to limit the setup time during a day.
+\noindent \\- Constraint to limit the setup time during a day. 
 \begin{flalign}
-& T_{i,j} > (maxTaskDay - 1)*maxSetup \Rightarrow J_i \neq J_j, & \forall i,j \in \T \\
-& T_{i,j} > maxSetup \land J_i = J_j \Rightarrow N_i \neq N_j, & \forall i,j \in \T
+& T_{i,j} > (maxTaskDay - 1)*maxSetup \Rightarrow J_i \neq J_j, & \forall i,j \in \T \\ %done
+& T_{i,j} > maxSetup \land J_i = J_j \Rightarrow N_i \neq N_j, & \forall i,j \in \T %done
 \end{flalign}
 
 % & \textsc{Element}(Pos_{N_i}, Pos_i, N_i), & \forall i \in \T \\
